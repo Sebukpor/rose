@@ -1,5 +1,5 @@
 ---
-title: Mine
+title: Rose
 emoji: 💻
 colorFrom: yellow
 colorTo: indigo
