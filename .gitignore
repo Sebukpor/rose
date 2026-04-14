@@ -1,1 +1,1 @@
-Nothing to output - the change list contains only a markdown file (INTEGRATION_GUIDE.md) which is a source/config file and should not be ignored.
+Nothing needs to be added to .gitignore since only a markdown file (INTEGRATION_GUIDE.md) was modified and no build artifacts, dependencies, or temporary files were included in the changes.
