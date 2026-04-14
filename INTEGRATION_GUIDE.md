@@ -57,7 +57,7 @@
                                │
                                ▼
                         ┌──────────────────┐
-                        │  Google Gemini   │
+                        │      Rose   │
                         │  (LLM + Cache)   │
                         └──────────────────┘
 ```
@@ -70,7 +70,7 @@
 | Database | Supabase PostgreSQL (via SQLAlchemy ORM) |
 | Authentication | JWT (HS256 algorithm) |
 | Password Hashing | bcrypt |
-| AI/ML | Google Gemini API, Whisper STT, Piper TTS |
+| AI/ML | Rose, Whisper STT, Piper TTS |
 | Translation | Argos Translate (14 languages) |
 | API Documentation | Swagger UI (OpenAPI 3.1.0) |
 
