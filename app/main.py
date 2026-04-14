@@ -31,6 +31,7 @@ from app.core.config import get_settings
 from app.core.prompt_loader import PromptLoader
 from app.api.route.avatar import router as avatar_router
 from app.api.route.auth import router as auth_router
+from app.api.route.usage import router as usage_router
 from app.models.response import ErrorResponse
 from app.services.gemini_cache_manager import get_cache_manager
 from app.db.database import DatabaseManager, init_db, get_db_manager
@@ -479,10 +480,22 @@ app.include_router(
     tags=["Clinical Triage"],
 )
 
-@app.get("/api/v1/usage/status", tags=["Usage Tracking"])
-async def get_usage_status(user_id: str = Header(None, alias="User-Id")):
+app.include_router(
+    usage_router,
+    tags=["Usage Tracking"],
+)
+
+# Deprecated: Old usage endpoints (kept for backward compatibility, will be removed in v2.0)
+# Use /api/v1/usage/* endpoints instead which extract user_id from JWT automatically
+# These legacy endpoints require User-Id header - new endpoints use JWT claims
+
+@app.get("/api/v1/usage/status", tags=["Usage Tracking - Legacy"], deprecated=True)
+async def get_usage_status_legacy(user_id: str = Header(None, alias="User-Id")):
     """
-    Get user's current quota status and usage.
+    [DEPRECATED] Get user's current quota status and usage.
+    
+    ⚠️ DEPRECATED: Use GET /api/v1/usage/status instead.
+    New endpoint extracts user_id from JWT token automatically.
     
     Headers:
         User-Id: User identifier (required)
@@ -501,13 +514,16 @@ async def get_usage_status(user_id: str = Header(None, alias="User-Id")):
         raise HTTPException(status_code=500, detail="Failed to retrieve quota status")
 
 
-@app.get("/api/v1/usage/history", tags=["Usage Tracking"])
-async def get_usage_history(
+@app.get("/api/v1/usage/history", tags=["Usage Tracking - Legacy"], deprecated=True)
+async def get_usage_history_legacy(
     user_id: str = Header(None, alias="User-Id"),
     days: int = Query(30, ge=1, le=365, description="Days of history to retrieve")
 ):
     """
-    Get detailed usage history for user.
+    [DEPRECATED] Get detailed usage history for user.
+    
+    ⚠️ DEPRECATED: Use GET /api/v1/usage/history instead.
+    New endpoint extracts user_id from JWT token automatically and supports pagination.
     
     Headers:
         User-Id: User identifier (required)
@@ -529,13 +545,12 @@ async def get_usage_history(
         raise HTTPException(status_code=500, detail="Failed to retrieve usage history")
 
 
-@app.get("/api/v1/pricing/tiers", tags=["Usage Tracking"])
-async def get_pricing_tiers(tier: Optional[str] = Query(None, description="Specific tier to get info for")):
+@app.get("/api/v1/pricing/tiers", tags=["Usage Tracking - Legacy"], deprecated=True)
+async def get_pricing_tiers_legacy(tier: Optional[str] = Query(None, description="Specific tier to get info for")):
     """
-    Get pricing tier information and limits.
+    [DEPRECATED] Get pricing tier information and limits.
     
-    Query Parameters:
-        tier: Optional specific tier (free, plus, pro, enterprise)
+    ⚠️ DEPRECATED: Use GET /api/v1/usage/tiers instead.
     """
     if not usage_api_handler:
         raise HTTPException(status_code=503, detail="Usage tracking not available")
@@ -548,6 +563,7 @@ async def get_pricing_tiers(tier: Optional[str] = Query(None, description="Speci
     except Exception as e:
         logger.error(f"Error getting tier info: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve tier information")
+
 
 
 # ================================================================

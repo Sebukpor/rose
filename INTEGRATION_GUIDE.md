@@ -1580,48 +1580,110 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
 
 ---
 
-## ⚠️ Known Limitations & Improvements
+## ✅ Known Limitations - RESOLVED (v1.1)
 
-### Current Limitations
+### Improvements Implemented
 
-1. **User-Id Header Redundancy**: The `/api/v1/usage/status` and `/api/v1/usage/history` endpoints require a `User-Id` header, but this should be extracted from the JWT token instead. This creates potential for mismatch.
+The following limitations have been addressed in this version:
 
-   **Recommendation**: Backend should extract user_id from JWT token automatically.
+1. **✅ User-Id Header Redundancy - FIXED**
+   
+   **Previous Issue**: The `/api/v1/usage/status` and `/api/v1/usage/history` endpoints required a `User-Id` header, creating potential for mismatch with JWT token.
+   
+   **Solution**: New endpoints extract `user_id` from JWT token automatically:
+   - `GET /api/v1/usage/status` - Uses authenticated user from JWT
+   - `GET /api/v1/usage/history` - Uses authenticated user from JWT + pagination
+   - `POST /api/v1/usage/tier/upgrade` - Self-service tier upgrades
+   - `GET /api/v1/usage/check` - Pre-flight quota checking
+   
+   **Legacy Endpoints**: Old endpoints still available but marked as deprecated (`deprecated=True` in OpenAPI spec). Will be removed in v2.0.
+   
+   **Migration Guide**:
+   ```typescript
+   // ❌ OLD (Deprecated)
+   const response = await fetch('/api/v1/usage/status', {
+     headers: {
+       'Authorization': `Bearer ${token}`,
+       'User-Id': userId  // Required but redundant
+     }
+   });
+   
+   // ✅ NEW (Recommended)
+   const response = await fetch('/api/v1/usage/status', {
+     headers: {
+       'Authorization': `Bearer ${token}`
+       // User-Id extracted from JWT automatically
+     }
+   });
+   ```
 
-2. **No WebSocket Support**: Real-time communication uses SSE, which doesn't support bidirectional communication.
+2. **✅ No Pagination for Usage History - FIXED**
+   
+   **Previous Issue**: The `/api/v1/usage/history` endpoint returned all records, potentially large datasets.
+   
+   **Solution**: Added pagination parameters:
+   - `page`: Page number (default: 1)
+   - `page_size`: Items per page (10-100, default: 50)
+   
+   **Response includes**:
+   ```json
+   {
+     "total_pages": 5,
+     "has_more": true,
+     "page": 1,
+     "page_size": 50,
+     "records": [...]
+   }
+   ```
 
-   **Recommendation**: Consider adding WebSocket endpoint for full-duplex communication.
+3. **✅ Missing Tier Upgrade Endpoint - FIXED**
+   
+   **Previous Issue**: No API endpoint to upgrade user tier directly.
+   
+   **Solution**: Added `POST /api/v1/usage/tier/upgrade`:
+   ```typescript
+   const upgradeTier = async (newTier: string) => {
+     const response = await fetch('/api/v1/usage/tier/upgrade', {
+       method: 'POST',
+       headers: {
+         'Authorization': `Bearer ${token}`,
+         'Content-Type': 'application/json'
+       },
+       body: JSON.stringify({ new_tier: newTier })
+     });
+     
+     // Returns: { success, old_tier, new_tier, message }
+   };
+   ```
+   
+   **Features**:
+   - Prevents downgrades (contact support for downgrades)
+   - Enterprise tier requires admin approval
+   - Updates database and usage limiter cache
+   - Returns clear error messages
 
-3. **No Pagination for Usage History**: The `/api/v1/usage/history` endpoint returns all records for the requested period, which could be large.
+4. **✅ Admin Usage History Endpoint - NEW**
+   
+   Added `GET /api/v1/usage/history/admin/{user_id}` for admin users to view any user's usage history. Requires admin privileges.
 
-   **Recommendation**: Add pagination parameters (`page`, `limit`).
+### Remaining Limitations (Future Versions)
 
-4. **No Webhook for Quota Alerts**: Frontend must poll for quota status.
+5. **No WebSocket Support**: Real-time communication uses SSE only.
+   
+   **Workaround**: Use SSE for streaming responses. WebSocket support planned for v2.0.
 
-   **Recommendation**: Add webhook support or push notifications for quota alerts.
+6. **No Webhook for Quota Alerts**: Frontend must poll for quota status.
+   
+   **Recommendation**: Implement periodic polling (every 5-10 minutes) or check quota before expensive operations using `GET /api/v1/usage/check`.
 
-5. **Missing Tier Upgrade Endpoint**: No API endpoint to upgrade user tier directly.
+7. **No Audio File Upload**: Audio must be base64-encoded.
+   
+   **Workaround**: Compress audio client-side before encoding. Multipart upload planned for v2.0.
 
-   **Recommendation**: Add `POST /api/v1/billing/upgrade` endpoint.
+8. **Limited Error Details**: Some validation errors lack field-level details.
+   
+   **Status**: Being improved incrementally. Check Swagger UI for latest schemas.
 
-6. **No Audio File Upload**: Audio must be base64-encoded in request body, which is inefficient for large files.
-
-   **Recommendation**: Add multipart/form-data upload endpoint for audio/images.
-
-7. **Limited Error Details**: Some error responses lack detailed validation errors.
-
-   **Recommendation**: Include field-level validation errors in 422 responses.
-
-### Suggested Improvements for Frontend Developers
-
-1. **Implement Optimistic UI Updates**: Update UI before API response for better UX
-2. **Add Offline Support**: Queue requests when offline, sync when online
-3. **Progressive Loading**: Show partial responses while streaming
-4. **Voice Input Integration**: Use Web Speech API or native speech recognition
-5. **Image Compression**: Compress images client-side before sending
-6. **Analytics Integration**: Track token usage patterns for optimization
-
----
 
 ## 📞 Support & Resources
 
