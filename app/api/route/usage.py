@@ -10,12 +10,18 @@ from app.db.models import User, UserTier
 from app.api.dependencies import get_current_user, get_current_admin
 from app.services.user_service import get_user_service
 from app.api.utils.usage_api import UsageAPIHandler
-from app.main import usage_api_handler, usage_limiter
+from app.core.dependencies import get_usage_api_handler, get_usage_limiter
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/usage", tags=["Usage Tracking"])
+
+
+# Helper to get handlers (avoids circular imports)
+def get_handlers():
+    """Get usage handlers from dependencies"""
+    return get_usage_api_handler(), get_usage_limiter()
 
 
 class UsageHistoryResponse(BaseModel):
@@ -79,6 +85,8 @@ async def get_usage_status(current_user: User = Depends(get_current_user)):
         - reset_date: When quota resets
         - is_limited: Whether user is currently rate-limited
     """
+    usage_api_handler, usage_limiter = get_handlers()
+    
     if not usage_api_handler:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -123,6 +131,8 @@ async def get_usage_history(
         - Individual usage records (paginated)
         - Pagination metadata (total_pages, has_more)
     """
+    usage_api_handler, usage_limiter = get_handlers()
+    
     if not usage_api_handler:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -202,6 +212,8 @@ async def get_admin_usage_history(
         page: Page number for pagination (default 1)
         page_size: Number of items per page (10-100, default 50)
     """
+    usage_api_handler, usage_limiter = get_handlers()
+    
     if not usage_api_handler:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -279,6 +291,8 @@ async def upgrade_tier(
         - Enterprise tier requires admin approval
         - Proration is not implemented yet
     """
+    usage_api_handler, usage_limiter = get_handlers()
+    
     if not usage_limiter:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -374,6 +388,8 @@ async def get_pricing_tiers(tier: Optional[str] = Query(None, description="Speci
         - description
         - overage_policy
     """
+    usage_api_handler, usage_limiter = get_handlers()
+    
     if not usage_api_handler:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

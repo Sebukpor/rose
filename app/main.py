@@ -38,6 +38,12 @@ from app.db.database import DatabaseManager, init_db, get_db_manager
 from app.db.models import Base
 from app.services.auth_service import init_jwt_service, get_jwt_service
 from app.services.user_service import init_user_service, get_user_service
+from app.core.dependencies import (
+    init_dependencies,
+    get_usage_db,
+    get_usage_limiter,
+    get_usage_api_handler
+)
 
 
 # ------------------------------------------------------------------
@@ -92,6 +98,9 @@ audit_logger.propagate = True          # still flows to root (stdout)
 logger = logging.getLogger("rose.startup")
 
 settings = get_settings()
+
+# Import shared instances from dependencies module
+# These are initialized in the lifespan context manager
 
 
 # ------------------------------------------------------------------
@@ -242,12 +251,12 @@ async def lifespan(app: FastAPI):
             logger.info(f"   Min tokens: {settings.GEMINI_CACHE_MIN_TOKENS}")
 
         # --- 🔹 NEW: Token Usage Tracking ---
-        global usage_db, usage_limiter, usage_api_handler, db_manager
+        global db_manager, usage_db, usage_limiter, usage_api_handler
         if settings.TOKEN_TRACKING_ENABLED:
             try:
-                usage_db = UsageDatabase(settings.USAGE_DB_PATH)
-                usage_limiter = FreemiumLimiter(usage_db)
-                usage_api_handler = UsageAPIHandler(usage_db, usage_limiter)
+                # Initialize shared dependencies
+                usage_db, usage_limiter, usage_api_handler = init_dependencies(settings.USAGE_DB_PATH)
+                
                 logger.info("✅ Token tracking and freemium quotas initialized")
                 logger.info(f"   Database: {settings.USAGE_DB_PATH}")
                 logger.info(f"   FREE tier: {settings.DEFAULT_FREE_TIER_LIMIT:,} tokens/month")
