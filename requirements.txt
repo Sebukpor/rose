@@ -1,0 +1,75 @@
+# Core Framework
+fastapi==0.111.0
+uvicorn==0.30.1
+pydantic==2.8.2
+pydantic-settings==2.3.4
+python-multipart==0.0.9
+email-validator==2.1.1
+
+# Database
+sqlalchemy==2.0.28
+psycopg2-binary==2.9.9
+
+# 🔹 UPDATED: Google Gen AI SDK (new unified SDK with caching support)
+google-genai==0.8.0
+google-api-core==2.19.0
+google-auth==2.29.0
+
+# 🔹 NEW: Redis support (optional, for distributed caching)
+redis==5.0.8
+
+# PyTorch - CPU only (for Whisper STT)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.3.0+cpu
+torchaudio==2.3.0+cpu
+
+# Image Processing (PIL/Pillow + utilities)
+Pillow==10.3.0  # PIL fork - Image processing, EXIF handling, format conversion
+pillow-heif==0.16.0  # HEIC/HEIF support for iPhone images
+imagehash==4.3.1  # Perceptual hashing for duplicate image detection (compliance)
+
+# NumPy
+numpy==1.26.4
+
+# Speech-to-Text
+faster-whisper==1.1.1
+
+# Text-to-Speech
+onnxruntime==1.18.0
+
+# Translation
+argostranslate==1.9.6
+sentencepiece==0.2.0
+
+# Audio processing
+pydub==0.25.1
+soundfile==0.12.1
+librosa==0.10.1
+
+# Security & Compliance
+cryptography==42.0.7
+python-jose[cryptography]==3.3.0
+PyJWT==2.12.1
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.3
+itsdangerous==2.2.0
+
+# Data Validation & Sanitization
+bleach==6.1.0
+python-magic==0.4.27
+
+# Utilities
+requests==2.31.0
+python-dotenv==1.0.1
+httpx==0.27.0
+aiohttp==3.9.5
+tenacity==8.3.0
+orjson==3.10.3
+
+# Monitoring & Observability
+structlog==24.1.0
+prometheus-client==0.20.0
+
+# Development/Testing
+pytest==8.2.2
+pytest-asyncio==0.23.7
