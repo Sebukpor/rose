@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     
     # Gemini config (ONLY cloud dependency remaining)
     GEMINI_API_KEY: str = Field(..., env="GEMINI_API_KEY")
-    GEMINI_MODEL: str = Field("gemini-3.1-flash-lite-preview", env="GEMINI_MODEL")
+    GEMINI_MODEL: str = Field("gemini-2.5-flash-lite", env="GEMINI_MODEL")
     GEMINI_TEMPERATURE: float = Field(0.3, ge=0.0, le=1.0)
     
     # 🔹 NEW: Context Caching Configuration
